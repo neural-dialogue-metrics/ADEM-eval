@@ -3,26 +3,22 @@
 This script computes dialogue embeddings for dialogues found in a text file.
 """
 
-#!/usr/bin/env python
+# !/usr/bin/env python
 
 import argparse
-import cPickle
-import traceback
+import pickle
 import logging
 import time
-import sys
 import math
 
 import os
 import numpy
-import codecs
-import utils
 
-from vhred_dialog_encdec import DialogEncoderDecoder
-from numpy_compat import argpartition
-from vhred_state import prototype_state
+from .vhred_dialog_encdec import DialogEncoderDecoder
+from .vhred_state import prototype_state
 
 logger = logging.getLogger(__name__)
+
 
 class Timer(object):
     def __init__(self):
@@ -34,23 +30,25 @@ class Timer(object):
     def finish(self):
         self.total += time.time() - self.start_time
 
+
 def parse_args():
     parser = argparse.ArgumentParser("Compute dialogue embeddings from model")
 
     parser.add_argument("model_prefix",
-            help="Path to the model prefix (without _model.npz or _state.pkl)")
+                        help="Path to the model prefix (without _model.npz or _state.pkl)")
 
     parser.add_argument("dialogues",
-            help="File of input dialogues (tab separated)")
+                        help="File of input dialogues (tab separated)")
 
     parser.add_argument("output",
-            help="Output file")
-    
+                        help="Output file")
+
     parser.add_argument("--verbose",
-            action="store_true", default=False,
-            help="Be verbose")
+                        action="store_true", default=False,
+                        help="Be verbose")
 
     return parser.parse_args()
+
 
 def compute_encodings(joined_contexts, model, model_compute_encoder_state, model_compute_decoder_state, embedding_type):
     # TODO Fix seqlen below
@@ -60,8 +58,7 @@ def compute_encodings(joined_contexts, model, model_compute_encoder_state, model
 
     last_token_position = numpy.zeros(len(joined_contexts), dtype='int32')
 
-    #second_last_utterance_position = numpy.zeros(len(joined_contexts), dtype='int32')
-
+    # second_last_utterance_position = numpy.zeros(len(joined_contexts), dtype='int32')
 
     for idx in range(len(joined_contexts)):
         context_lengths[idx] = len(joined_contexts[idx])
@@ -70,14 +67,14 @@ def compute_encodings(joined_contexts, model, model_compute_encoder_state, model
         else:
             # If context is longer tham max context, truncate it and force the end-of-utterance token at the end
             context[:seqlen, idx] = joined_contexts[idx][0:seqlen]
-            context[seqlen-1, idx] = model.eos_sym
+            context[seqlen - 1, idx] = model.eos_sym
             context_lengths[idx] = seqlen
 
         eos_indices = list(numpy.where(context[:context_lengths[idx], idx] == model.eos_sym)[0])
 
-        #if len(eos_indices) > 1:
+        # if len(eos_indices) > 1:
         #    second_last_utterance_position[idx] = eos_indices[-2]
-        #else:
+        # else:
         #    second_last_utterance_position[idx] = context_lengths[idx]
 
         for k in range(seqlen):
@@ -92,10 +89,10 @@ def compute_encodings(joined_contexts, model, model_compute_encoder_state, model
     # Compute encoder hidden states
     if embedding_type.upper() == 'CONTEXT':
 
-        encoder_states = model_compute_encoder_state(context, reversed_context, seqlen+1)
-        context_hidden_states = encoder_states[-2] # hidden state for the "context" encoder, h_s,
-                                           # and last hidden state of the utterance "encoder", h
-        latent_hidden_states = encoder_states[-1] # mean for the stochastic latent variable, z
+        encoder_states = model_compute_encoder_state(context, reversed_context, seqlen + 1)
+        context_hidden_states = encoder_states[-2]  # hidden state for the "context" encoder, h_s,
+        # and last hidden state of the utterance "encoder", h
+        latent_hidden_states = encoder_states[-1]  # mean for the stochastic latent variable, z
 
         output_states = context_hidden_states
 
@@ -113,28 +110,32 @@ def compute_encodings(joined_contexts, model, model_compute_encoder_state, model
 
             n_samples = model.bs
 
-        zero_mask = numpy.zeros((seqlen+1, n_samples), dtype='float32')
+        zero_mask = numpy.zeros((seqlen + 1, n_samples), dtype='float32')
         zero_vector = numpy.zeros((n_samples), dtype='float32')
-        ones_mask = numpy.zeros((seqlen+1, n_samples), dtype='float32')
+        ones_mask = numpy.zeros((seqlen + 1, n_samples), dtype='float32')
 
         if hasattr(model, 'latent_gaussian_per_utterance_dim'):
-            gaussian_zeros_vector = numpy.zeros((seqlen+1,n_samples,model.latent_gaussian_per_utterance_dim), dtype='float32')
+            gaussian_zeros_vector = numpy.zeros((seqlen + 1, n_samples, model.latent_gaussian_per_utterance_dim),
+                                                dtype='float32')
         else:
-            gaussian_zeros_vector = numpy.zeros((seqlen+1,n_samples,2), dtype='float32')
+            gaussian_zeros_vector = numpy.zeros((seqlen + 1, n_samples, 2), dtype='float32')
 
         if hasattr(model, 'latent_piecewise_per_utterance_dim'):
-            uniform_zeros_vector = numpy.zeros((seqlen+1,n_samples,model.latent_piecewise_per_utterance_dim), dtype='float32')
+            uniform_zeros_vector = numpy.zeros((seqlen + 1, n_samples, model.latent_piecewise_per_utterance_dim),
+                                               dtype='float32')
         else:
-            uniform_zeros_vector = numpy.zeros((seqlen+1,n_samples,2), dtype='float32')
+            uniform_zeros_vector = numpy.zeros((seqlen + 1, n_samples, 2), dtype='float32')
 
-        decoder_hidden_states = model_compute_decoder_state(context, reversed_context, seqlen+1, zero_mask, zero_vector, gaussian_zeros_vector, uniform_zeros_vector, ones_mask)[0]
+        decoder_hidden_states = \
+        model_compute_decoder_state(context, reversed_context, seqlen + 1, zero_mask, zero_vector,
+                                    gaussian_zeros_vector, uniform_zeros_vector, ones_mask)[0]
 
         if contexts_to_exclude > 0:
             output_states = decoder_hidden_states[:, 0:n_samples, :]
         else:
             output_states = decoder_hidden_states
     else:
-        print 'FAILURE: embedding_type has to be either CONTEXT or DECODER!'
+        print('FAILURE: embedding_type has to be either CONTEXT or DECODER!')
         assert False
 
     outputs = numpy.zeros((output_states.shape[1], output_states.shape[2]), dtype='float32')
@@ -151,14 +152,15 @@ def main(model_prefix, dialogue_file):
     model_path = model_prefix + "_model.npz"
 
     with open(state_path) as src:
-        state.update(cPickle.load(src))
+        state.update(pickle.load(src))
 
-    logging.basicConfig(level=getattr(logging, state['level']), format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
+    logging.basicConfig(level=getattr(logging, state['level']),
+                        format="%(asctime)s: %(name)s: %(levelname)s: %(message)s")
 
     state['bs'] = 10
 
-    model = DialogEncoderDecoder(state) 
-    
+    model = DialogEncoderDecoder(state)
+
     if os.path.isfile(model_path):
         logger.debug("Loading previous model")
         model.load(model_path)
@@ -204,7 +206,6 @@ def main(model_prefix, dialogue_file):
 
             joined_contexts = []
 
-
     if len(joined_contexts) > 0:
         logger.debug("[COMPUTE] - Got batch %d / %d" % (batch_total, batch_total))
         encs = compute_encodings(joined_contexts, model, model_compute_encoder_state, model_compute_decoder_state)
@@ -213,6 +214,7 @@ def main(model_prefix, dialogue_file):
 
     return dialogue_encodings
 
+
 if __name__ == "__main__":
     args = parse_args()
 
@@ -220,7 +222,6 @@ if __name__ == "__main__":
     dialogue_encodings = main(args.model_prefix, args.dialogues)
 
     # Save encodings to disc
-    cPickle.dump(dialogue_encodings, open(args.output + '.pkl', 'w'))
-
+    pickle.dump(dialogue_encodings, open(args.output + '.pkl', 'w'))
 
     #  THEANO_FLAGS=mode=FAST_COMPILE,floatX=float32 python compute_dialogue_embeddings.py tests/models/1462302387.69_testmodel tests/data/tvalid_contexts.txt Latent_Variable_Means --verbose --use-second-last-state
