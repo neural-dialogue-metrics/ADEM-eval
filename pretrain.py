@@ -9,9 +9,9 @@
 import sys
 from apply_bpe import BPE
 
-from vhred.vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
-from vhred.vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
-from vhred.vhred_state import prototype_state as VHRED_prototype_state
+from vhred_py.vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
+from vhred_py.vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
+from vhred_py.vhred_state import prototype_state as VHRED_prototype_state
 
 import theano
 from preprocess import AMT_DataLoader, Preprocessor
@@ -34,7 +34,7 @@ class VHRED(object):
         f_bpe_dictionary = config['vhred_bpe_file']
         with open(f_bpe_dictionary, 'r') as handle:
             self.bpe = BPE(handle.readlines(), '@@')
-        with open(self.f_dict, 'r') as handle:
+        with open(self.f_dict, 'rb') as handle:
             twitter_dict = pickle.load(handle)
         self.str_to_idx = dict([(tok, tok_id) for tok, tok_id, _, _ in twitter_dict])
         self.idx_to_str = dict([(tok_id, tok) for tok, tok_id, _, _ in twitter_dict])

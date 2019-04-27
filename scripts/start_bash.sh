@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
-IMAGE=ufoym/deepo:theano-py36-cu90
-
+IMAGE=cgsdfc/adem-1-master:latest
 PROJECT_PATH=/home/cgsdfc/deployment/Metrics/AutoTuring/ADEM-1-master
 
 docker run --runtime nvidia --rm -it \

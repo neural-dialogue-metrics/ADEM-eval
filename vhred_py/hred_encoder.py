@@ -1148,7 +1148,7 @@ class DialogEncoderDecoder(Model):
         self.rng = numpy.random.RandomState(state['seed'])
 
         # Load dictionary
-        raw_dict = pickle.load(open(self.dictionary, 'r'))
+        raw_dict = pickle.load(open(self.dictionary, 'rb'))
 
         # Probabilities for each term in the corpus used for noise contrastive estimation (NCE)
         self.noise_probs = [x[2] for x in sorted(raw_dict, key=operator.itemgetter(1))]

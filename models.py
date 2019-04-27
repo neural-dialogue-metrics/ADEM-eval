@@ -341,13 +341,12 @@ class ADEM(object):
         print_string = ''
         for name, p, s, rmse in results:
             print_string += '\n%s Pearson: %.3f (%.3f)\tSpearman: %.3f (%.3f)\tRMSE: %.3f' % (
-            name, p[0], p[1], s[0], s[1], rmse)
+                name, p[0], p[1], s[0], s[1], rmse)
         print(print_string)
 
     def load(self, f_model):
         with open(f_model, 'rb') as handle:
             saved_model = pickle.load(handle, encoding='latin-1')
-        print(saved_model)
         self.config = saved_model['config']
         init_mean, init_range = saved_model['init_mean'], saved_model['init_range']
         self._build_model(self.config['pca_components'], init_mean, init_range)
@@ -357,10 +356,12 @@ class ADEM(object):
 
     def save(self):
         # Save the PCA model.
-        saved_model = {'pca': self.pca,
-                       'params': self.best_params,
-                       'config': self.config,
-                       'init_mean': self.init_mean,
-                       'init_range': self.init_range}
+        saved_model = {
+            'pca': self.pca,
+            'params': self.best_params,
+            'config': self.config,
+            'init_mean': self.init_mean,
+            'init_range': self.init_range
+        }
         with open('%s/adem_model.pkl' % self.config['exp_folder'], 'wb') as handle:
             pickle.dump(saved_model, handle)

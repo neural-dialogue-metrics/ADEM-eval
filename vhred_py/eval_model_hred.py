@@ -46,10 +46,8 @@ random.seed(0)
 
 
 def load_data(filein):
-    '''
-    Input: csv file name (string)
-    Output: 
-    '''
+    # Input: csv file name (string)
+    # Output: 
     with open(filein, 'r') as f1:
         data = []
         csv1 = csv.reader(f1)
@@ -98,7 +96,6 @@ def idxs_to_strs(data, bpe, idx_to_str):
 
 
 def get_context(data):
-    ''' Returns the context from the data '''
     out = []
     for row in data:
         out.append('</s> ' + preprocess_tweet(row[0][5:-2]))
@@ -109,7 +106,6 @@ def get_context(data):
 
 
 def get_gtresponse(data):
-    ''' Returns the reference response from the data '''
     out = []
     for row in data:
         out.append(preprocess_tweet(row[2][5:-2]))
@@ -118,7 +114,6 @@ def get_gtresponse(data):
 
 
 def get_modelresponse(data):
-    ''' returns the model response from the data '''
     out = []
     for row in data:
         out.append(preprocess_tweet(row[1][5:-2]))
@@ -127,11 +122,11 @@ def get_modelresponse(data):
 
 def get_twitter_data(clean_data_file, context_file, gt_file):
     '''
-    Loads Twitter data from dictionaries (the form the data comes in after AMT experiments).
+    Loads Twitter data from dictionaries.
     '''
-    with open(clean_data_file, 'r') as f1:
+    with open(clean_data_file, 'rb') as f1:
         clean_data = pickle.load(f1)
-    with open(context_file, 'r') as f1:
+    with open(context_file, 'rb') as f1:
         contexts = pickle.load(f1)
     gt_unordered = []
     with open(gt_file, 'r') as f1:
@@ -168,7 +163,7 @@ def get_twitter_data(clean_data_file, context_file, gt_file):
 
 
 def combine_contextids(cid1, cid2):
-    ''' Combines 2 lists of context ids '''
+    # Combines 2 lists of context ids
     for cid in cid2:
         if cid not in cid1:
             cid1.append(cid)
@@ -557,14 +552,12 @@ class LinearEvalModel(object):
         self.feat = feat
         self.x = input
 
-        # Projects embeddings into 'fair' space
-        self.emb_response_fair = T.dot(self.emb_response, self.F)
-
         # Compute score predictions
-        self.pred1 = T.sum(self.emb_context * T.dot(self.emb_response_fair, self.M), axis=1)
-        self.pred2 = T.sum(self.emb_true_response * T.dot(self.emb_response_fair, self.N), axis=1)
-        self.pred3 = T.dot(self.feat, self.f)
-        self.pred = self.pred1 + self.pred2 + self.pred3
+        self.pred1 = T.sum(self.emb_context * T.dot(self.emb_response, self.M), axis=1)
+        self.pred2 = T.sum(self.emb_true_response * T.dot(self.emb_response, self.N), axis=1)
+        # self.pred4 = T.sum(self.emb_response_fair * T.dot(self.emb_response, self.M), axis=1)
+        # self.pred3 = T.dot(self.feat, self.f)
+        self.pred = self.pred1 + self.pred2  # + self.pred3
         # self.pred = T.sum(T.dot(self.emb_response, self.f), axis=1) + 0*T.sum(self.feat) # If only using response
         self.output = 2.5 + 5 * (self.pred - init_mean) / init_range  # to re-scale dot product values to [0,5] range
 
@@ -588,24 +581,8 @@ class LinearEvalModel(object):
         # self.nuis = lasagne.layers.get_output(net)
         # self.net = net
 
-        # Compute length with linear regression
-        self.q = theano.shared(np.zeros((emb_dim,)).astype(theano.config.floatX), borrow=True)
-        self.b = theano.shared(1. * mean_length)
-        self.nuis = T.dot(self.emb_response_fair, self.q) + self.b * np.ones((batch_size,))
-
     def squared_error(self, score):
         return T.mean((self.output - score) ** 2)
-
-    def squared_len_error(self, length):
-        return T.mean((self.nuis - length) ** 2)
-
-    def hinge_loss_len(self, length, alpha=1):
-        min_loss = 1605.157
-        len_loss = T.mean((self.nuis - length) ** 2)
-        if T.gt(min_loss, len_loss):  # < min_loss:
-            return alpha * (min_loss - len_loss)
-        else:
-            return 0 * len_loss
 
     def linear_error(self, score):
         return T.mean(T.log(T.exp(2 * (self.output - score)) + 1) - (self.output - score))
@@ -616,32 +593,17 @@ class LinearEvalModel(object):
     def l1_regularization(self):
         return self.M.norm(1) + self.N.norm(1)
 
-    def l1_regularization_F_I(self):
-        return (self.F - T.eye(self.emb_dim)).norm(1)
-
-    def l1_regularization_F(self):
-        return self.F.norm(1)
-
-    def l2_regularization_F(self):
-        return (self.F - np.eye(self.emb_dim)).norm(2)
-
-    def l2_regularization_q(self):
-        return self.q.norm(2)
-
     def get_params(self):
-        return [self.M, self.N, self.F, self.q, self.f]
+        return [self.M, self.N]
 
     def set_params(self, param_list):
         self.M = param_list[0]
         self.N = param_list[1]
-        self.F = param_list[2]
-        self.q = param_list[3]
-        self.f = param_list[4]
         return
 
 
 def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l, \
-          init_mean, init_range, learning_rate=0.01, num_epochs=200, \
+          init_mean, init_range, learning_rate=0.01, num_epochs=100, \
           batch_size=16, l2reg=0, l1reg=0, train_feat=None, val_feat=None, test_feat=None, pca_name=None, \
           exp_folder=None, test_contexts=None, test_modelresponses=None, test_gtresponses=None,
           bleu2_list=None, rouge_list=None, mean_length=None):
@@ -672,59 +634,42 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
     feat = T.fmatrix('feat')
 
     emb_len_loss_const = 0.005
-    emb_loss_const = 0.001
     emb_l1_reg = 0.01
     emb_lr = 0.001
-    len_lr = 0.005
+    len_lr = 0.001
 
     model = LinearEvalModel(input=x, feat=feat, emb_dim=emb_dim, batch_size=batch_size, init_mean=init_mean,
                             init_range=init_range, \
                             mean_length=mean_length, feat_dim=feat_dim)
-    model2 = LinearEvalModel(input=x, feat=feat, emb_dim=emb_dim, batch_size=batch_size, init_mean=init_mean,
-                             init_range=init_range, \
-                             mean_length=mean_length, feat_dim=feat_dim)
 
-    # Usual cost to make accurate score predictions 
     score_cost = model.squared_error(y) + l2reg * model.l2_regularization() + l1reg * model.l1_regularization()
-    # Cost for the fairness matrix, to minimize length prediction while maximizing score prediction performance
-    emb_cost = emb_len_loss_const * model.hinge_loss_len(
-        l) + emb_l1_reg * model.l1_regularization_F_I() + emb_loss_const * model.squared_error(y)
-    # Cost for linear regression model to maximize length prediction performance
-    len_cost = model.squared_len_error(l)  # + l2reg * model.l2_regularization_q()
 
     get_output = theano.function(
         inputs=[],
         outputs=model.output,
         givens={
-            x: test_x,
-            feat: test_feat
-        }
+            x: test_x
+            # eat: test_feat
+        },
+        on_unused_input='warn'
     )
 
     get_output_val = theano.function(
         inputs=[],
         outputs=model.output,
         givens={
-            x: val_x,
-            feat: val_feat
-        }
+            x: val_x
+            # feat: val_feat
+        },
+        on_unused_input='warn'
     )
 
     get_output_train = theano.function(
         inputs=[],
         outputs=model.output,
         givens={
-            x: train_x,
-            feat: train_feat
-        }
-    )
-
-    get_test_len_loss = theano.function(
-        inputs=[],
-        outputs=model.squared_len_error(l),
-        givens={
-            x: test_x,
-            l: test_l
+            x: train_x
+            # feat: train_feat
         },
         on_unused_input='warn'
     )
@@ -734,22 +679,21 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
     len_lr = np.float32(len_lr)
     g_M = T.grad(cost=score_cost, wrt=model.M)
     g_N = T.grad(cost=score_cost, wrt=model.N)
-    g_F = T.grad(cost=emb_cost, wrt=model.F)
-    g_q = T.grad(cost=len_cost, wrt=model.q)
-    g_b = T.grad(cost=len_cost, wrt=model.b)
     #    g_q2 = T.grad(cost=len_cost, wrt=model.q2)
     #    g_b2 = T.grad(cost=len_cost, wrt=model.b2)
-    g_f = T.grad(cost=score_cost, wrt=model.f)
 
-    updates = [(model.q, model.q - len_lr * g_q),
-               (model.b, model.b - len_lr * g_b)]
-
-    updates2 = [(model.F, model.F - emb_lr * g_F)]
-
-    updates3 = [(model.M, model.M - learning_rate * g_M),
-                (model.N, model.N - learning_rate * g_N),
-                (model.f, model.f - learning_rate * g_f)]
-
+    updates = [(model.M, model.M - learning_rate * g_M),
+               (model.N, model.N - learning_rate * g_N)]
+    #                (model.q2, model.q2 - learning_rate * g_q2),
+    #                (model.b2, model.b2 - learning_rate * g_b2),
+    '''
+    updates = { model.M: model.M - learning_rate * g_M,
+                model.N: model.N - learning_rate * g_N, 
+                model.F: model.F - learning_rate * g_F, 
+                #(model.q, model.q - learning_rate_q * g_q), 
+                #(model.b, model.b - learning_rate * g_b), 
+                model.f: model.f - learning_rate * g_f }
+    '''
     # net_params = lasagne.layers.get_all_params(model.net, trainable=True)
     # net_updates = lasagne.updates.adam(len_cost, net_params, learning_rate=learning_rate_len)
     # print net_updates
@@ -757,36 +701,8 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
 
     train_model = theano.function(
         inputs=[index],
-        outputs=len_cost,
-        updates=updates,
-        givens={
-            x: train_x[index * batch_size: (index + 1) * batch_size],
-            y: train_y[index * batch_size: (index + 1) * batch_size],
-            l: train_l[index * batch_size: (index + 1) * batch_size],
-            feat: train_feat[index * batch_size: (index + 1) * batch_size]
-        },
-        on_unused_input='warn'
-
-    )
-
-    train_model2 = theano.function(
-        inputs=[index],
-        outputs=emb_cost,
-        updates=updates2,
-        givens={
-            x: train_x[index * batch_size: (index + 1) * batch_size],
-            y: train_y[index * batch_size: (index + 1) * batch_size],
-            l: train_l[index * batch_size: (index + 1) * batch_size],
-            feat: train_feat[index * batch_size: (index + 1) * batch_size]
-        },
-        on_unused_input='warn'
-
-    )
-
-    train_model3 = theano.function(
-        inputs=[index],
         outputs=score_cost,
-        updates=updates3,
+        updates=updates,
         givens={
             x: train_x[index * batch_size: (index + 1) * batch_size],
             y: train_y[index * batch_size: (index + 1) * batch_size],
@@ -801,7 +717,6 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
 
     print('...starting training')
     epoch = 0
-    rand_len_cost = 1600
     first_output = get_output()
     first_cor = correlation(first_output, test_y)
     first_cor_val = correlation(get_output_val(), val_y_values)
@@ -809,7 +724,6 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
     best_output = np.zeros((50,))
     best_cor = [0, 0]
     best_test_cor = [0, 0]
-
     loss_list = []
     len_loss_list = []
     emb_loss_list = []
@@ -826,32 +740,14 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
         if epoch % 100 == 0:
             print('Starting epoch', epoch)
         cost_list = []
-        emb_cost_list = []
-        len_cost_list = []
         for minibatch_index in range(n_train_batches):
-            len_cost = train_model(minibatch_index)
-            len_cost_list.append(len_cost)
-        test_len_cost = get_test_len_loss()
-        minibatch_index = 0
-        while True:
-            emb_cost = train_model2(minibatch_index)
-            emb_cost_list.append(emb_cost)
-            test_len_cost = get_test_len_loss()
-            minibatch_index += 1
-            if minibatch_index == n_train_batches or test_len_cost >= rand_len_cost:
-                break
-        for minibatch_index in range(n_train_batches):
-            minibatch_cost = train_model3(minibatch_index)
+            minibatch_cost = train_model(minibatch_index)
             cost_list.append(minibatch_cost)
         model_out = get_output()
         model_train_out = get_output_train()
         model_val_out = get_output_val()
         loss = sum(cost_list) / float(len(cost_list))
         loss_list.append(loss)
-        len_loss = sum(len_cost_list) / float(len(len_cost_list))
-        len_loss_list.append(len_loss)
-        emb_loss = sum(emb_cost_list) / float(len(emb_cost_list))
-        emb_loss_list.append(emb_loss)
 
         train_correlation = correlation(model_train_out, train_y_values)
         val_correlation = correlation(model_val_out, val_y_values)
@@ -873,17 +769,6 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
             # with open('best_model.pkl', 'w') as f:
             #    pickle.dump(model, f)
 
-    # Checking to make sure the length prediction model doesn't work
-
-    for epoch in range(100):
-        len_cost_list_f = []
-        for minibatch_index in range(n_train_batches):
-            len_cost = train_model(minibatch_index)
-            len_cost_list_f.append(len_cost)
-        if epoch % 10 == 0:
-            print(sum(len_cost_list_f) / float(len(len_cost_list_f)))
-            print(get_test_len_loss())
-
     end_time = time.time()
 
     # Print out results
@@ -899,9 +784,6 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
     print_string += '\n Final Peason correlation (train): ' + str(train_correlation[1])
     print_string += '\n Initial Spearman correlation (train): ' + str(first_cor_train[0])
     print_string += '\n Initial Peason correlation (train): ' + str(first_cor_train[1])
-    print_string += '\n Final embedding loss (train): ' + str(emb_loss)
-    print_string += '\n Final length loss (train): ' + str(len_loss)
-    print_string += '\n Final length loss (test): ' + str(get_test_len_loss())
     # print_string +=  '\n Final value of q : ' + str(model.q)
     # print_string +=  '\n Initial Spearman correlation (test): ' + str(first_cor[0])
     # print_string +=  '\n Initial Peason correlation (test): ' + str(first_cor[1])
@@ -948,6 +830,9 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
     # Save summary info
     with open('./results/' + exp_folder + folder_name + '/results.txt', 'w') as f1:
         f1.write(print_string)
+    # Save best parameters
+    pickle.dump(best_params, open('./results/' + exp_folder + folder_name + '/params.pkl', 'wb'))
+
     return '\n\n' + print_string, folder_name, best_params, model
 
 
@@ -1046,9 +931,9 @@ if __name__ == '__main__':
     # Load model_map. Dictionary of the form {context_id: ['hred','tfidf', 'de', 'human']} (model order)
     model_map_file = '../models.pkl'
     model_map_file2 = '../models_new.pkl'
-    with open(model_map_file, 'r') as f1:
+    with open(model_map_file, 'rb') as f1:
         model_map = pickle.load(f1)
-    with open(model_map_file2, 'r') as f1:
+    with open(model_map_file2, 'rb') as f1:
         model_map2 = pickle.load(f1)
     # Any context_id>988 is invalid for model_map2, according to mike
     model_map2 = fixmodelmap2(model_map2)
@@ -1085,15 +970,15 @@ if __name__ == '__main__':
                 lso.append(num + 1)
                 lso.append(num + 2)
                 lso.append(num + 3)
-            with open(short_shuffle_file, 'w') as f1:
+            with open(short_shuffle_file, 'wb') as f1:
                 pickle.dump(shuffled_order, f1)
-            with open(long_shuffle_file, 'w') as f1:
+            with open(long_shuffle_file, 'wb') as f1:
                 pickle.dump(lso, f1)
 
         else:
-            with open(short_shuffle_file, 'r') as f1:
+            with open(short_shuffle_file, 'rb') as f1:
                 shuffled_order = pickle.load(f1)
-            with open(long_shuffle_file, 'r') as f1:
+            with open(long_shuffle_file, 'rb') as f1:
                 lso = pickle.load(f1)
 
         contexts, gts, models, scores = np.array(contexts), np.array(gts), np.array(models), np.array(scores)
@@ -1108,13 +993,13 @@ if __name__ == '__main__':
 
 
     def short_shuffle(ar_in):
-        with open(short_shuffle_file, 'r') as f1:
+        with open(short_shuffle_file, 'rb') as f1:
             so = pickle.load(f1)
         return ar_in[so]
 
 
     def long_shuffle(ar_in):
-        with open(long_shuffle_file, 'r') as f1:
+        with open(long_shuffle_file, 'rb') as f1:
             lso = pickle.load(f1)
         return ar_in[lso]
 
@@ -1150,7 +1035,7 @@ if __name__ == '__main__':
 
     # Load in Twitter dictionaries
     twitter_bpe = BPE(open(twitter_bpe_dictionary, 'r').readlines(), twitter_bpe_separator)
-    twitter_dict = pickle.load(open(twitter_model_dictionary, 'r'))
+    twitter_dict = pickle.load(open(twitter_model_dictionary, 'rb'))
     twitter_str_to_idx = dict([(tok, tok_id) for tok, tok_id, _, _ in twitter_dict])
     twitter_idx_to_str = dict([(tok_id, tok) for tok, tok_id, _, _ in twitter_dict])
 
@@ -1197,11 +1082,11 @@ if __name__ == '__main__':
         # Compute VHRED embeddings
         if use_precomputed_embeddings:
             print('Loading precomputed embeddings...')
-            with open(context_embedding_file, 'r') as f1:
+            with open(context_embedding_file, 'rb') as f1:
                 twitter_context_embeddings = pickle.load(f1)
-            with open(gtresponses_embedding_file, 'r') as f1:
+            with open(gtresponses_embedding_file, 'rb') as f1:
                 twitter_gtresponse_embeddings = pickle.load(f1)
-            with open(modelresponses_embedding_file, 'r') as f1:
+            with open(modelresponses_embedding_file, 'rb') as f1:
                 twitter_modelresponse_embeddings = pickle.load(f1)
 
         elif 'gpu' in theano.config.device.lower():
@@ -1210,7 +1095,7 @@ if __name__ == '__main__':
             state_path = twitter_model_prefix + "_state.pkl"
             model_path = twitter_model_prefix + "_model.npz"
 
-            with open(state_path) as src:
+            with open(state_path, 'rb') as src:
                 state.update(pickle.load(src))
 
             state['bs'] = 20
@@ -1220,16 +1105,16 @@ if __name__ == '__main__':
 
             print('Computing context embeddings...')
             twitter_context_embeddings = compute_model_embeddings(twitter_context_ids, model, embedding_type)
-            with open(context_embedding_file, 'w') as f1:
+            with open(context_embedding_file, 'wb') as f1:
                 pickle.dump(twitter_context_embeddings, f1)
             print('Computing ground truth response embeddings...')
             twitter_gtresponse_embeddings = compute_model_embeddings(twitter_gtresponse_ids, model, embedding_type)
-            with open(gtresponses_embedding_file, 'w') as f1:
+            with open(gtresponses_embedding_file, 'wb') as f1:
                 pickle.dump(twitter_gtresponse_embeddings, f1)
             print('Computing model response embeddings...')
             twitter_modelresponse_embeddings = compute_model_embeddings(twitter_modelresponse_ids, model,
                                                                         embedding_type)
-            with open(modelresponses_embedding_file, 'w') as f1:
+            with open(modelresponses_embedding_file, 'wb') as f1:
                 pickle.dump(twitter_modelresponse_embeddings, f1)
 
         else:
@@ -1337,7 +1222,7 @@ if __name__ == '__main__':
     l1reg_list = [0.005, 0.01, 0.02, 0.03, 0.05]  # 1e-3, 1e-2, 0.1]
     pca_list = [20, 35, 50, 75, 100, 200]
     l1reg_list = [0.0005, 0.001, 0.002, 0.005]
-    pca_list = [50]  # , 20, 50, 100]
+    pca_list = [7]  # , 20, 50, 100]
     l1reg_list = [0.02]
     l2reg_list = [0]
     lr_list = [0.01]
