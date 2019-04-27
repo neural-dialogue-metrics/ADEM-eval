@@ -10,11 +10,8 @@ import sys
 import csv
 from scipy.stats import pearsonr
 import scipy
-import matplotlib
 import imp
 
-matplotlib.use('Agg')
-from matplotlib import pyplot as pp
 import theano
 import theano.tensor as T
 import time

@@ -9,15 +9,9 @@
 import sys
 from apply_bpe import BPE
 
-VHRED_FOLDER = './vhred/src/'
-# VHRED_FOLDER = '/home/ml/mnosew1/adem_test/hed-dlg-truncated'
-# Import VHRED files.
-sys.path.insert(0, VHRED_FOLDER)
-from vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
-from vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
-from vhred_state import prototype_state as VHRED_prototype_state
-
-sys.path.remove(VHRED_FOLDER)
+from vhred.vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
+from vhred.vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
+from vhred.vhred_state import prototype_state as VHRED_prototype_state
 
 import theano
 from preprocess import AMT_DataLoader, Preprocessor

@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
 
-from data_iterator import *
+from .data_iterator import *
 from .vhred_state import *
 from .vhred_dialog_encdec import *
 from .utils import *
@@ -25,11 +25,6 @@ import os.path
 
 from os import listdir
 from os.path import isfile, join
-
-import matplotlib
-
-matplotlib.use('Agg')
-import pylab
 
 
 class Unbuffered:
@@ -333,18 +328,18 @@ def main(args):
             try:
                 print(
                     ".. %.2d:%.2d:%.2d %4d mb # %d bs %d maxl %d acc_cost = %.4f acc_word_perplexity = %.4f cur_cost = %.4f cur_word_perplexity = %.4f acc_mean_word_error = %.4f acc_mean_kl_divergence_cost = %.8f acc_mean_posterior_variance = %.8f" % (
-                    h, m, s, \
-                    state['time_stop'] - (time.time() - start_time) / 60., \
-                    step, \
-                    batch['x'].shape[1], \
-                    batch['max_length'], \
-                    float(train_cost / train_done), \
-                    math.exp(float(train_cost / train_done)), \
-                    current_train_cost, \
-                    math.exp(current_train_cost), \
-                    float(train_misclass) / float(train_done), \
-                    float(train_kl_divergence_cost / train_done), \
-                    float(train_posterior_mean_variance / train_dialogues_done)))
+                        h, m, s, \
+                        state['time_stop'] - (time.time() - start_time) / 60., \
+                        step, \
+                        batch['x'].shape[1], \
+                        batch['max_length'], \
+                        float(train_cost / train_done), \
+                        math.exp(float(train_cost / train_done)), \
+                        current_train_cost, \
+                        math.exp(current_train_cost), \
+                        float(train_misclass) / float(train_done), \
+                        float(train_kl_divergence_cost / train_done), \
+                        float(train_posterior_mean_variance / train_dialogues_done)))
             except:
                 pass
 
@@ -506,8 +501,8 @@ def main(args):
             try:
                 print(
                     "** valid cost (NLL) = %.4f, valid word-perplexity = %.4f, valid kldiv cost (per word) = %.8f, valid mean posterior variance (per word) = %.8f, patience = %d" % (
-                    float(valid_cost), float(math.exp(valid_cost)), float(valid_kl_divergence_cost),
-                    float(valid_posterior_mean_variance), patience))
+                        float(valid_cost), float(math.exp(valid_cost)), float(valid_kl_divergence_cost),
+                        float(valid_posterior_mean_variance), patience))
             except:
                 try:
                     print("** valid cost (NLL) = %.4f, patience = %d" % (float(valid_cost), patience))

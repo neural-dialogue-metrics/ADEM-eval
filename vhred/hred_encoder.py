@@ -35,7 +35,7 @@ def add_to_params(params, new_param):
     return new_param
 
 
-class EncoderDecoderBase():
+class EncoderDecoderBase:
     def __init__(self, state, rng, parent):
         self.rng = rng
         self.parent = parent

@@ -6,7 +6,6 @@ import numpy as np
 from sklearn.decomposition import PCA
 from scipy.stats import pearsonr, spearmanr
 import lasagne
-import sys
 
 
 class ADEM(object):

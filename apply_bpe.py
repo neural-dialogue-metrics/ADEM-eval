@@ -12,20 +12,7 @@ Proceedings of the 54th Annual Meeting of the Association for Computational Ling
 """
 
 import sys
-import codecs
 import argparse
-from collections import defaultdict
-
-# hack for python2/3 compatibility
-from io import open
-
-argparse.open = open
-
-# python 2/3 compatibility
-if sys.version_info < (3, 0):
-    sys.stderr = codecs.getwriter('UTF-8')(sys.stderr)
-    sys.stdout = codecs.getwriter('UTF-8')(sys.stdout)
-    sys.stdin = codecs.getreader('UTF-8')(sys.stdin)
 
 
 class BPE(object):
@@ -34,7 +21,6 @@ class BPE(object):
         self.bpe_codes = [tuple(item.split()) for item in codes]
         # some hacking to deal with duplicates (only consider first instance)
         self.bpe_codes = dict([(code, i) for (i, code) in reversed(list(enumerate(self.bpe_codes)))])
-
         self.separator = separator
 
     def segment(self, sentence):
@@ -88,10 +74,12 @@ def get_pairs(word):
     return pairs
 
 
-def encode(orig, bpe_codes, cache={}):
+def encode(orig, bpe_codes, cache=None):
     """Encode word based on list of BPE merge operations, which are applied consecutively
     """
 
+    if cache is None:
+        cache = {}
     if orig in cache:
         return cache[orig]
 

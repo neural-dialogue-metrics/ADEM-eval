@@ -1,5 +1,5 @@
 import numpy
-import adam
+from . import adam
 import theano
 import theano.tensor as T
 from collections import OrderedDict
