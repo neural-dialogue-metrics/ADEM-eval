@@ -255,10 +255,10 @@ class ADEM(object):
             data = self.pretrainer.get_embeddings(data)
 
             with open(fname_embeddings, 'wb') as handle:
-                cPickle.dump(data, handle)
+                pickle.dump(data, handle)
         else:
             with open(fname_embeddings, 'rb') as handle:
-                data = cPickle.load(handle)
+                data = pickle.load(handle)
 
         # Create train, validation, and test sets.
         train_x, val_x, test_x, train_y, val_y, test_y, train_lengths = self._create_data_splits(data)
@@ -346,7 +346,8 @@ class ADEM(object):
 
     def load(self, f_model):
         with open(f_model, 'rb') as handle:
-            saved_model = cPickle.load(handle)
+            saved_model = pickle.load(handle, encoding='latin-1')
+        print(saved_model)
         self.config = saved_model['config']
         init_mean, init_range = saved_model['init_mean'], saved_model['init_range']
         self._build_model(self.config['pca_components'], init_mean, init_range)
@@ -362,4 +363,4 @@ class ADEM(object):
                        'init_mean': self.init_mean,
                        'init_range': self.init_range}
         with open('%s/adem_model.pkl' % self.config['exp_folder'], 'wb') as handle:
-            cPickle.dump(saved_model, handle)
+            pickle.dump(saved_model, handle)

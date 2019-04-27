@@ -362,7 +362,7 @@ if __name__ == '__main__':
 
     else:
         # Set embeddings to 0 for now. alternatively, we can load them from disc...
-        # embeddings = cPickle.load(open(embedding_file, 'rb'))
+        # embeddings = pickle.load(open(embedding_file, 'rb'))
         print('ERROR: No GPU specified!')
     '''
     pca_components = 50
@@ -379,7 +379,7 @@ if __name__ == '__main__':
         pca_prefix = ''
 
     
-    cPickle.dump(embeddings, open('/home/ml/rlowe1/TwitterData/context_emb_pca30/'+ftype+'_context_emb_'+str(fcounter)+'.pkl', 'w'))            
+    pickle.dump(embeddings, open('/home/ml/rlowe1/TwitterData/context_emb_pca30/'+ftype+'_context_emb_'+str(fcounter)+'.pkl', 'w'))            
     '''
     start = time.time()
     print('Testing model...')

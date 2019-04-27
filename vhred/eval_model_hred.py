@@ -767,7 +767,7 @@ def train(train_x, val_x, test_x, train_y, val_y, test_y, train_l, val_l, test_l
             best_output_test = get_output()
             best_params = model.get_params()
             # with open('best_model.pkl', 'w') as f:
-            #    cPickle.dump(model, f)
+            #    pickle.dump(model, f)
 
     end_time = time.time()
 
@@ -1119,7 +1119,7 @@ if __name__ == '__main__':
 
         else:
             # Set embeddings to 0 for now. alternatively, we can load them from disc...
-            # embeddings = cPickle.load(open(embedding_file, 'rb'))
+            # embeddings = pickle.load(open(embedding_file, 'rb'))
             print('ERROR: No GPU specified!')
             print(' To save testing time, model will be trained with zero context / response embeddings...')
             twitter_context_embeddings = np.zeros((len(twitter_context_embeddings), 3, emb_dim))
