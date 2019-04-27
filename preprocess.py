@@ -1,7 +1,7 @@
-'''
-This file will clean up the data collected from AMT. 
+"""
+This file will clean up the data collected from AMT.
 
-'''
+"""
 import pickle
 import re
 

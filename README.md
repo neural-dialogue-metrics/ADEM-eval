@@ -15,3 +15,8 @@ https://drive.google.com/file/d/0B-nb1w_dNuMLY0Fad3N1YU9ZOU0/view?usp=sharing
 
 An example of running ADEM can be found in `interactive.py`:  
 `THEANO_FLAGS='device=gpu0,floatX=float32' python interactive.py`
+
+Recommended docker image:
+
+    cgsdfc/adem-1-master:latest
+    

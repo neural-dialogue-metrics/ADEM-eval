@@ -1,23 +1,15 @@
-import numpy as np
-import sys
 import csv
-from scipy.stats import pearsonr
-import scipy
+
 import matplotlib
+import numpy as np
 
 matplotlib.use('Agg')
-from matplotlib import pyplot as pp
 import theano
-import theano.tensor as T
 import time
 import math
 import pickle
-import argparse
-
-from scipy.spatial import KDTree
 
 from .vhred_dialog_encdec import DialogEncoderDecoder
-from .numpy_compat import argpartition
 from .vhred_state import prototype_state
 from .vhred_compute_dialogue_embeddings import compute_encodings
 

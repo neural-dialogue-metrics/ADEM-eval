@@ -1,17 +1,10 @@
-import numpy as np
-import sys
-import csv
-import scipy
-import time
-import math
+import os
 import pickle
 
-from scipy.spatial.distance import cosine
+import numpy as np
 from sklearn.feature_extraction.text import *
 from sklearn.metrics import *
 from sklearn.preprocessing import *
-
-import os
 
 os.sys.path.insert(0, '../TwitterData/BPE/subword_nmt')
 

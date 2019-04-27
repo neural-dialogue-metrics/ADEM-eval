@@ -5,33 +5,27 @@ This code learns to predict human scores
 using a linear model on top of VHRED embeddings.
 """
 
-import numpy as np
-import sys
 import csv
-from scipy.stats import pearsonr
-import scipy
 import imp
+import math
+import os
+import pickle
+import sys
+import time
+from random import randint
 
+import numpy as np
+import scipy
 import theano
 import theano.tensor as T
-import time
-import math
-import pickle
-from sklearn.decomposition import PCA
 from pycocoevalcap.bleu.bleu import Bleu
 from pycocoevalcap.rouge.rouge import Rouge
-from pycocoevalcap.meteor.meteor import Meteor
-from random import randint
-from nltk.corpus import stopwords
-import string
-import lasagne
+from scipy.stats import pearsonr
+from sklearn.decomposition import PCA
 
-from .vhred_dialog_encdec import DialogEncoderDecoder
-from .numpy_compat import argpartition
-from .vhred_state import prototype_state
 from .vhred_compute_dialogue_embeddings import compute_encodings
-
-import os
+from .vhred_dialog_encdec import DialogEncoderDecoder
+from .vhred_state import prototype_state
 
 os.sys.path.insert(0, '../TwitterData/BPE/subword_nmt')
 

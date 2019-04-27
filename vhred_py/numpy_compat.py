@@ -11,8 +11,9 @@ Created on Sep 12, 2014
 
 __all__ = ['argpartition']
 
-import numpy
 import warnings
+
+import numpy
 
 if hasattr(numpy, 'argpartition'):
     argpartition = numpy.argpartition

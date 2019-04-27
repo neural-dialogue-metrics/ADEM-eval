@@ -1,30 +1,26 @@
 # -*- coding: utf-8 -*-
 # !/usr/bin/env python
 
-from .data_iterator import *
-from .vhred_state import *
-from .vhred_dialog_encdec import *
-from .utils import *
-
-import time
-import traceback
-import sys
 import argparse
-import pickle
 import logging
-import search
-import pprint
-import numpy
-import collections
-import signal
 import math
-import gc
-
 import os
 import os.path
-
+import pickle
+import pprint
+import signal
+import sys
+import time
 from os import listdir
 from os.path import isfile, join
+
+import gc
+import numpy
+import search
+
+from .data_iterator import *
+from .utils import *
+from .vhred_dialog_encdec import *
 
 
 class Unbuffered:

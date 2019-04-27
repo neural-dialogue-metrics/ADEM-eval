@@ -1,11 +1,13 @@
-from pretrain import *
 import os
+
+import lasagne
+import numpy as np
 import theano
 import theano.tensor as T
-import numpy as np
-from sklearn.decomposition import PCA
 from scipy.stats import pearsonr, spearmanr
-import lasagne
+from sklearn.decomposition import PCA
+
+from pretrain import *
 
 
 class ADEM(object):

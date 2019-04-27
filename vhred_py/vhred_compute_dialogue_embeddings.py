@@ -6,12 +6,12 @@ This script computes dialogue embeddings for dialogues found in a text file.
 # !/usr/bin/env python
 
 import argparse
-import pickle
 import logging
-import time
 import math
-
 import os
+import pickle
+import time
+
 import numpy
 
 from .vhred_dialog_encdec import DialogEncoderDecoder

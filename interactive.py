@@ -1,6 +1,5 @@
 from models import *
 from preprocess import Preprocessor
-import sys
 
 saved_model = './weights/adem_model.pkl'
 

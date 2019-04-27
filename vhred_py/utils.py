@@ -1,8 +1,10 @@
+from collections import OrderedDict
+
 import numpy
-from . import adam
 import theano
 import theano.tensor as T
-from collections import OrderedDict
+
+from . import adam
 
 PRINT_VARS = True
 

@@ -4,22 +4,15 @@
 	Each method should oversample according to length and perform pca if specified in
 	config.
 '''
-# Add a change
-# Insert the path to the hred_encoder file.
-import sys
-from apply_bpe import BPE
-
-from vhred_py.vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
-from vhred_py.vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
-from vhred_py.vhred_state import prototype_state as VHRED_prototype_state
-
-import theano
-from preprocess import AMT_DataLoader, Preprocessor
-import pickle
 import math
+import pickle
+
 import numpy as np
-import os
-from sklearn.decomposition import IncrementalPCA
+
+from apply_bpe import BPE
+from vhred_py.vhred_compute_dialogue_embeddings import compute_encodings as VHRED_compute_encodings
+from vhred_py.vhred_dialog_encdec import DialogEncoderDecoder as VHRED_DialogEncoderDecoder
+from vhred_py.vhred_state import prototype_state as VHRED_prototype_state
 
 np.random.seed(0)
 

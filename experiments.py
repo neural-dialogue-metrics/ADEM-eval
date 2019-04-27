@@ -1,6 +1,6 @@
-'''
+"""
 This file documents the experiment parimeters to run a model.
-'''
+"""
 
 
 def standard_config():

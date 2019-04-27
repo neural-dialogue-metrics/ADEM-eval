@@ -1,11 +1,9 @@
-'''
+"""
 This file is the training pipeline for the ADEM model.
-'''
-import preprocess
+"""
 import argparse
-from experiments import *
 import os
-import pickle
+
 from models import ADEM
 from preprocess import AMT_DataLoader, Preprocessor
 

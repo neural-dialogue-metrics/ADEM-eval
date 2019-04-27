@@ -6,19 +6,16 @@ but we do not rely on groundhog infrastructure.
 __docformat__ = 'restructedtext en'
 __authors__ = ("Iulian Vlad Serban")
 
+import logging
+import pickle
+
+import numpy as np
 import theano
 import theano.tensor as T
-import numpy as np
-import pickle
-import logging
 
 logger = logging.getLogger(__name__)
 
-from theano.sandbox.scan import scan
-from theano.sandbox.rng_mrg import MRG_RandomStreams
 from theano.tensor.nnet.conv3d2d import *
-
-from collections import OrderedDict
 
 from .model import *
 from .utils import *

@@ -5,13 +5,14 @@ This code learns to predict human scores
 using a linear model on top of VHRED embeddings.
 """
 
-import numpy as np
-import sys
 import csv
-from scipy.stats import pearsonr
-import scipy
-import matplotlib
 import imp
+import sys
+
+import matplotlib
+import numpy as np
+import scipy
+from scipy.stats import pearsonr
 
 matplotlib.use('Agg')
 from matplotlib import pyplot as pp
@@ -23,13 +24,9 @@ import pickle
 from sklearn.decomposition import PCA
 from pycocoevalcap.bleu.bleu import Bleu
 from pycocoevalcap.rouge.rouge import Rouge
-from pycocoevalcap.meteor.meteor import Meteor
 from random import randint
-from nltk.corpus import stopwords
-import string
 
 from .vhred_dialog_encdec import DialogEncoderDecoder
-from .numpy_compat import argpartition
 from .vhred_state import prototype_state
 from .vhred_compute_dialogue_embeddings import compute_encodings
 
