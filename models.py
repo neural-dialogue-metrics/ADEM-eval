@@ -36,8 +36,10 @@ class ADEM(object):
         for c, r_gt, r_m in zip(contexts, gt_responses, model_responses):
             entry = {'c': c, 'r_gt': r_gt, 'r_models': {'test': [r_m, ]}}
             dataset.append(entry)
+
         #  Get the embeddings through the pretrainer.
         dataset = self.pretrainer.get_embeddings(dataset, ['test', ])
+
         # TODO: Perform PCA.
         x = np.zeros((len(dataset), 3, 2000), dtype=theano.config.floatX)
         for ix, entry in enumerate(dataset):
@@ -248,7 +250,8 @@ class ADEM(object):
         return theano.shared(np.asarray(x, dtype=theano.config.floatX), borrow=True)
 
     def train_eval(self, data_loader, use_saved_embeddings=True):
-        # Each dictionary looks like { 'c': context, 'r_gt': true response, 'r_models': {'hred': (model_response, score), ... }}
+        # Each dictionary looks like { 'c': context, 'r_gt': true response, 'r_models': {'hred': (model_response,
+        # score), ... }}
         fname_embeddings = '%s/%s' % (self.config['exp_folder'], self.config['vhred_embeddings_file'])
         if (not use_saved_embeddings) or (not os.path.exists(fname_embeddings)):
             # Get embeddings for our dataset.

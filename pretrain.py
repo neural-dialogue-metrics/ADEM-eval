@@ -146,9 +146,10 @@ class VHRED(object):
         return dataset
 
     def get_embeddings(self, dataset, new_models=None, ignore_models=False):
-        ''' Dataset should be a list of dictionaries. Each dictionary should have
-          keys: c, r_gt, r_models = {'model_name': [r, score, length], ...}
-        '''
+        """
+        Dataset should be a list of dictionaries. Each dictionary should have
+        keys: c, r_gt, r_models = {'model_name': [r, score, length], ...}
+        """
         if not new_models is None:
             self.MODELS = new_models
         if 'r_models' not in dataset[0]:
