@@ -3,14 +3,10 @@ from flask import json
 from flask import make_response
 from flask import request
 
-from interactive import saved_model
-from models import ADEM
-from preprocess import Preprocessor
+from model_instance import create_model_instance
 
 app = Flask(__name__)
-
-app.logger.info('loading adem model...')
-Adem = ADEM(Preprocessor(), None, saved_model)
+Adem = create_model_instance()
 
 CONTEXT = 'context'
 REFERENCE = 'reference'
@@ -58,12 +54,8 @@ def score_utterance():
     :return: a response whose body is a solo string containing the utterance level score.
     """
     data = [[item] for item in _extract_data(request.args)]
-    try:
-        scores = Adem.get_scores(*data)
-    except Exception as e:
-        return _make_error(e)
-    else:
-        return str(scores[0])
+    scores = Adem.get_scores(*data)
+    return str(scores[0])
 
 
 @app.route('/adem/v1/score/corpus')
@@ -84,12 +76,8 @@ def score_corpus():
         }
     """
     data = _extract_data(request.json)
-    try:
-        scores = Adem.get_scores(*data)
-    except Exception as e:
-        return _make_error(e)
-    else:
-        return _make_score(scores)
+    scores = Adem.get_scores(*data)
+    return _make_score(scores)
 
 
 @app.route('/adem/v1/score/files')
@@ -111,14 +99,6 @@ def score_files():
         }
     """
     filenames = _extract_data(request.json)
-    try:
-        data = [_load_file(filename) for filename in filenames]
-    except FileNotFoundError as e:
-        return _make_error(e)
-
-    try:
-        scores = Adem.get_scores(*data)
-    except Exception as e:
-        return _make_error(e)
-    else:
-        return _make_score(scores)
+    data = [_load_file(filename) for filename in filenames]
+    scores = Adem.get_scores(*data)
+    return _make_score(scores)
