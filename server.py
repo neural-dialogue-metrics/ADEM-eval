@@ -54,7 +54,7 @@ def score_utterance():
     :return: a response whose body is a solo string containing the utterance level score.
     """
     data = [[item] for item in _extract_data(request.args)]
-    scores = Adem.get_scores(*data)
+    scores = Adem.get_scores(,
     return str(scores[0])
 
 
@@ -76,7 +76,7 @@ def score_corpus():
         }
     """
     data = _extract_data(request.json)
-    scores = Adem.get_scores(*data)
+    scores = Adem.get_scores(,
     return _make_score(scores)
 
 
@@ -100,5 +100,5 @@ def score_files():
     """
     filenames = _extract_data(request.json)
     data = [_load_file(filename) for filename in filenames]
-    scores = Adem.get_scores(*data)
+    scores = Adem.get_scores(,
     return _make_score(scores)
