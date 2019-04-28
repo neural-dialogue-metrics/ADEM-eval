@@ -12,3 +12,8 @@ def create_model_instance():
     Adem = ADEM(Preprocessor(), None, saved_model)
     logger.info('model loaded. config: %r', Adem.config)
     return Adem
+
+
+def load_file(filename):
+    with open(filename) as f:
+        return f.readlines()

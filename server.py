@@ -3,7 +3,7 @@ from flask import json
 from flask import make_response
 from flask import request
 
-from model_instance import create_model_instance
+from utils import create_model_instance
 
 app = Flask(__name__)
 Adem = create_model_instance()
@@ -54,7 +54,7 @@ def score_utterance():
     :return: a response whose body is a solo string containing the utterance level score.
     """
     data = [[item] for item in _extract_data(request.args)]
-    scores = Adem.get_scores(,
+    scores = Adem.get_scores(*data)
     return str(scores[0])
 
 
@@ -76,7 +76,7 @@ def score_corpus():
         }
     """
     data = _extract_data(request.json)
-    scores = Adem.get_scores(,
+    scores = Adem.get_scores(*data)
     return _make_score(scores)
 
 
@@ -100,5 +100,5 @@ def score_files():
     """
     filenames = _extract_data(request.json)
     data = [_load_file(filename) for filename in filenames]
-    scores = Adem.get_scores(,
+    scores = Adem.get_scores(*data)
     return _make_score(scores)
