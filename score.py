@@ -1,13 +1,13 @@
 import argparse
-import numpy as np
 from utils import create_model_instance, load_file
+from agenda.metric_helper import write_score
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--context_file')
     parser.add_argument('--ref_file', help='ground truth file')
     parser.add_argument('--model_file')
-    parser.add_argument('--utterance_score', help='write score for all utterances to this file')
+    parser.add_argument('--score_file')
     args = parser.parse_args()
 
     context = load_file(args.context_file)
@@ -20,9 +20,8 @@ if __name__ == '__main__':
         model_responses=model,
     )
 
-    if args.utterance_score:
-        with open(args.utterance_score, 'w') as f:
-            for score in scores:
-                print(score, file=f)
-
-    print(np.mean(scores))
+    write_score(
+        name='ADEM',
+        scores=list(scores),
+        output=args.score_file,
+    )
