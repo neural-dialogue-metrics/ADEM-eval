@@ -78,6 +78,8 @@ class VHRED(object):
 
         # Create the model:
         model = VHRED_DialogEncoderDecoder(state)
+        # Load model weights.
+        model.load(model_path)
         model.bs = 100
         enc_fn = model.build_encoder_function()
         dec_fn = model.build_decoder_encoding()
@@ -164,6 +166,7 @@ class VHRED(object):
         context_embs = self._compute_embeddings(context_ids)
         print('Computing ground truth response embeddings...')
         gt_response_embs = self._compute_embeddings(gt_response_ids)
+
         if not ignore_models:
             print('Computing model response embeddings...')
             model_response_embs = self._compute_embeddings(model_response_ids)

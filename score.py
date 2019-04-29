@@ -4,14 +4,14 @@ from utils import create_model_instance, load_file
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-cf', '--context_file')
-    parser.add_argument('-gf', '--gt_file', help='ground truth file')
-    parser.add_argument('-mf', '--model_file')
-    parser.add_argument('-u', '--utterance_score', help='write score for all utterances to this file')
+    parser.add_argument('--context_file')
+    parser.add_argument('--ref_file', help='ground truth file')
+    parser.add_argument('--model_file')
+    parser.add_argument('--utterance_score', help='write score for all utterances to this file')
     args = parser.parse_args()
 
     context = load_file(args.context_file)
-    gt = load_file(args.gt_file)
+    gt = load_file(args.ref_file)
     model = load_file(args.model_file)
     adem = create_model_instance()
     scores = adem.get_scores(
