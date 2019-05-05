@@ -42,4 +42,5 @@ def run():
         model_responses=payload['responses'],
     )
     output_file = Path('./adem_output.txt')
+    logger.info('Saving scores to {}'.format(output_file.absolute()))
     output_file.write_text('\n'.join(map(str, scores)))
