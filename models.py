@@ -1,13 +1,14 @@
 import os
-
+import logging
 import lasagne
-import numpy as np
 import theano
 import theano.tensor as T
 from scipy.stats import pearsonr, spearmanr
 from sklearn.decomposition import PCA
 
 from pretrain import *
+
+logger = logging.getLogger(__name__)
 
 
 class ADEM(object):
@@ -111,9 +112,9 @@ class ADEM(object):
             x_flat[n_train * i: n_train * (i + 1), :] = train_x[:, i, :]
         pca_train = self.pca.fit_transform(x_flat)
 
-        print('PCA Variance')
-        print(self.pca.explained_variance_ratio_)
-        print(np.sum(self.pca.explained_variance_ratio_))
+        logger.info('PCA Variance')
+        logger.info('%s', self.pca.explained_variance_ratio_)
+        logger.info('%s', np.sum(self.pca.explained_variance_ratio_))
 
         # Expand the result back to three dimensions.
         train_pca_x = np.zeros((n_train, 3, self.config['pca_components']), dtype='float32')
@@ -290,7 +291,7 @@ class ADEM(object):
         self._build_model(train_x.shape[2], init_mean, init_range, training_mode=True)
 
         # Train the model.
-        print('Starting training...')
+        logger.info('Starting training...')
         epoch = 0
         # Vairables to keep track of the best achieved so far.
         best_output_val = np.zeros((50,))
@@ -335,8 +336,8 @@ class ADEM(object):
                 best_epoch = epoch
                 self.best_params = [self.M.get_value(), self.N.get_value()]
 
-        print('Done training!')
-        print('Last updated on epoch %d' % best_epoch)
+        logger.info('Done training!')
+        logger.info('Last updated on epoch %d' % best_epoch)
 
         # Print out results
         results = [('TRAIN', train_correlation[1], train_correlation[0], train_loss),
@@ -347,7 +348,7 @@ class ADEM(object):
         for name, p, s, rmse in results:
             print_string += '\n%s Pearson: %.3f (%.3f)\tSpearman: %.3f (%.3f)\tRMSE: %.3f' % (
                 name, p[0], p[1], s[0], s[1], rmse)
-        print(print_string)
+        logger.info(print_string)
 
     def load(self, f_model):
         with open(f_model, 'rb') as handle:
